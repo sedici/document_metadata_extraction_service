@@ -59,12 +59,12 @@ start_uvicorn_service() {
 
 # --- Iniciar Extractor Service ---
 # Pasar EXTRACTOR_TOKEN como SERVICE_TOKEN para este proceso de uvicorn
-start_uvicorn_service extractor_service 8001 extractor_service \
+start_uvicorn_service extractor_service "${PORT_EXTRACTOR_API:-8001}" extractor_service \
     SERVICE_TOKEN="$EXTRACTOR_TOKEN"
 
 # --- Iniciar LLM Service LED ---
 # Pasar las variables específicas del LLM Service, incluyendo LLM_LED_TOKEN como SERVICE_TOKEN
-start_uvicorn_service llm_service 8002 llm_service_led \
+start_uvicorn_service llm_service "${PORT_LLM_LED_API:-8002}" llm_service_led \
     IS_LOCAL_MODEL="$IS_LOCAL_MODEL1" \
     IS_OLLAMA_MODEL="$IS_OLLAMA_MODEL1" \
     SERVICE_TOKEN="$LLM_LED_TOKEN" \
@@ -79,7 +79,7 @@ start_uvicorn_service llm_service 8002 llm_service_led \
 
 # --- Iniciar LLM Service QWEN (opcional) ---
 if [ "$ENABLE_QWEN_SERVICE" = "true" ]; then
-    start_uvicorn_service llm_service 8003 llm_service_qwen \
+    start_uvicorn_service llm_service "${PORT_LLM_QWEN_API:-8003}" llm_service_qwen \
         IS_OLLAMA_MODEL="$IS_OLLAMA_MODEL2" \
         IS_LOCAL_MODEL="$IS_LOCAL_MODEL2" \
         SERVICE_TOKEN="$LLM_DEEPANALYZE_TOKEN" \
@@ -92,7 +92,7 @@ fi
 
 # --- Iniciar Orchestrator ---
 # Pasar todas las variables que el Orchestrator necesita, incluyendo su propio SERVICE_TOKEN
-start_uvicorn_service orchestrator 8000 orchestrator \
+start_uvicorn_service orchestrator "${PORT_ORCHESTRATOR_API:-8000}" orchestrator \
     SERVICE_TOKEN="$ORCHESTRATOR_TOKEN" \
     EXTRACTOR_TOKEN="$EXTRACTOR_TOKEN" \
     LLM_LED_TOKEN="$LLM_LED_TOKEN" \
@@ -112,14 +112,14 @@ sleep 10
 # --- Health Checks ---
 echo "Ejecutando pruebas de integración..."
 sleep 1
-curl -s http://127.0.0.1:8000/health || echo "[ERROR] Orchestrator no responde"
+curl -s http://127.0.0.1:${PORT_ORCHESTRATOR_API:-8000}/health || echo "[ERROR] Orchestrator no responde"
 sleep 1
-curl -s http://127.0.0.1:8001/health || echo "[ERROR] Extractor no responde"
+curl -s http://127.0.0.1:${PORT_EXTRACTOR_API:-8001}/health || echo "[ERROR] Extractor no responde"
 sleep 1
-curl -s http://127.0.0.1:8002/health || echo "[ERROR] LLM Service LED no responde"
+curl -s http://127.0.0.1:${PORT_LLM_LED_API:-8002}/health || echo "[ERROR] LLM Service LED no responde"
 if [ "$ENABLE_QWEN_SERVICE" = "true" ]; then
     sleep 1
-    curl -s http://127.0.0.1:8003/health || echo "[ERROR] LLM Service QWEN no responde"
+    curl -s http://127.0.0.1:${PORT_LLM_QWEN_API:-8003}/health || echo "[ERROR] LLM Service QWEN no responde"
 fi
 
 echo "DEBUG (Bash - curl): Sending Authorization: Bearer '$ORCHESTRATOR_TOKEN'"
@@ -127,7 +127,7 @@ echo ""
 echo "Ejecutando test de integración entre servicios..."
 sleep 1
 # Este curl usa $ORCHESTRATOR_TOKEN del entorno principal del script
-curl -s -H "Authorization: Bearer $ORCHESTRATOR_TOKEN" http://127.0.0.1:8000/test-integration || echo "[ERROR] Test de integración falló"
+curl -s -H "Authorization: Bearer $ORCHESTRATOR_TOKEN" http://127.0.0.1:${PORT_ORCHESTRATOR_API:-8000}/test-integration || echo "[ERROR] Test de integración falló"
 
 echo ""
 echo "Pruebas de integración finalizadas."

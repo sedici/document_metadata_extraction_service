@@ -6,15 +6,16 @@ services:
       context: ./orchestrator
     container_name: orchestrator
     ports:
-      - "8000:8000"
+      - "${PORT_ORCHESTRATOR_API}:${PORT_ORCHESTRATOR_API}"
     environment:
+      - SERVICE_PORT=${PORT_ORCHESTRATOR_API}
       - SERVICE_TOKEN=${ORCHESTRATOR_TOKEN}
       - EXTRACTOR_TOKEN=${EXTRACTOR_TOKEN}
       - LLM_LED_TOKEN=${LLM_LED_TOKEN}
       - LLM_DEEPANALYZE_TOKEN=${LLM_DEEPANALYZE_TOKEN}
-      - EXTRACTOR_URL=http://extractor_service:8001
-      - LLM_LED_URL=http://llm_service_led:8002
-      - LLM_DEEPANALYZE_URL=http://llm_service_qwen:8003
+      - EXTRACTOR_URL=http://extractor_service:${PORT_EXTRACTOR_API}
+      - LLM_LED_URL=http://llm_service_led:${PORT_LLM_LED_API}
+      - LLM_DEEPANALYZE_URL=http://llm_service_qwen:${PORT_LLM_QWEN_API}
       - IDENTIFIER_PATH_MODEL=${IDENTIFIER_PATH_MODEL}
       - IDENTIFIER_PATH_VECTORIZER=${IDENTIFIER_PATH_VECTORIZER}
       - IDENTIFIER_PATH_LABEL_ENCODER=${IDENTIFIER_PATH_LABEL_ENCODER}
@@ -31,8 +32,9 @@ services:
       context: ./extractor_service
     container_name: extractor_service
     ports:
-      - "8001:8001"
+      - "${PORT_EXTRACTOR_API}:${PORT_EXTRACTOR_API}"
     environment:
+      - SERVICE_PORT=${PORT_EXTRACTOR_API}
       - SERVICE_TOKEN=${EXTRACTOR_TOKEN}
 
   llm_service_led:
@@ -40,8 +42,9 @@ services:
       context: ./llm_service
     container_name: llm_service_led
     ports:
-      - "8002:8002"
+      - "${PORT_LLM_LED_API}:${PORT_LLM_LED_API}"
     environment:
+      - SERVICE_PORT=${PORT_LLM_LED_API}
       - SERVICE_TOKEN=${LLM_LED_TOKEN}
       - IS_LOCAL_MODEL=${IS_LOCAL_MODEL1}
       - IS_OLLAMA_MODEL=${IS_OLLAMA_MODEL1}
@@ -61,9 +64,9 @@ services:
       context: ./llm_service
     container_name: llm_service_qwen
     ports:
-      - "8003:8003"
+      - "${PORT_LLM_QWEN_API}:${PORT_LLM_QWEN_API}"
     environment:
-      - SERVICE_PORT=8003
+      - SERVICE_PORT=${PORT_LLM_QWEN_API}
       - SERVICE_TOKEN=${LLM_DEEPANALYZE_TOKEN}
       - IS_LOCAL_MODEL=${IS_LOCAL_MODEL2}
       - IS_OLLAMA_MODEL=${IS_OLLAMA_MODEL2}
@@ -71,3 +74,48 @@ services:
       - OLLAMA_HOST_URL=${OLLAMA_HOST_URL}
     profiles:
       - qwen
+
+  # ---------------------------------------------------------------------------
+  # MCP Servers
+  # ---------------------------------------------------------------------------
+
+  mcp_orchestrator:
+    build:
+      context: ./mcp/orchestrator_mcp
+    container_name: mcp_orchestrator
+    ports:
+      - "${PORT_MCP_ORCHESTRATOR}:${PORT_MCP_ORCHESTRATOR}"
+    environment:
+      - PORT_MCP_ORCHESTRATOR=${PORT_MCP_ORCHESTRATOR}
+      - ORCHESTRATOR_URL=http://orchestrator:${PORT_ORCHESTRATOR_API}
+      - ORCHESTRATOR_TOKEN=${ORCHESTRATOR_TOKEN}
+    volumes:
+      - /home/santi/Documentos/LangGraph/Multi-Services Project/MCPs/MinIO MCP/Downloads:/home/santi/Documentos/LangGraph/Multi-Services Project/MCPs/MinIO MCP/Downloads:ro
+    depends_on:
+      - orchestrator
+
+  mcp_extractor:
+    build:
+      context: ./mcp/extractor_mcp
+    container_name: mcp_extractor
+    ports:
+      - "${PORT_MCP_EXTRACTOR}:${PORT_MCP_EXTRACTOR}"
+    environment:
+      - PORT_MCP_EXTRACTOR=${PORT_MCP_EXTRACTOR}
+      - EXTRACTOR_URL=http://extractor_service:${PORT_EXTRACTOR_API}
+      - EXTRACTOR_TOKEN=${EXTRACTOR_TOKEN}
+    depends_on:
+      - extractor_service
+
+  mcp_llm_led:
+    build:
+      context: ./mcp/llm_led_mcp
+    container_name: mcp_llm_led
+    ports:
+      - "${PORT_MCP_LLM_LED}:${PORT_MCP_LLM_LED}"
+    environment:
+      - PORT_MCP_LLM_LED=${PORT_MCP_LLM_LED}
+      - LLM_LED_URL=http://llm_service_led:${PORT_LLM_LED_API}
+      - LLM_LED_TOKEN=${LLM_LED_TOKEN}
+    depends_on:
+      - llm_service_led
