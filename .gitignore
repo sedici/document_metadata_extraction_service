@@ -40,3 +40,4 @@ pyvenv.cfg
 *.png
 !/api/app/init.sh
 !set_and_run_api_with docker_compose_quick_guide.txt
+.agents/**

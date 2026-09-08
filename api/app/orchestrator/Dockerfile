@@ -10,5 +10,4 @@ RUN python -c "import nltk; nltk.download('stopwords', quiet=True); nltk.downloa
 
 COPY app/ ./app/
 
-ENV SERVICE_PORT=9500
 CMD uvicorn app.main:app --host 0.0.0.0 --port $SERVICE_PORT

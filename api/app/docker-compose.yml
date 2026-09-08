@@ -91,6 +91,7 @@ services:
       - ORCHESTRATOR_TOKEN=${ORCHESTRATOR_TOKEN}
     volumes:
       - /home/santi/Documentos/LangGraph/Multi-Services Project/MCPs/MinIO MCP/Downloads:/home/santi/Documentos/LangGraph/Multi-Services Project/MCPs/MinIO MCP/Downloads:ro
+      - /home/santi/Documentos/LangGraph/Modulo-Marta/mcps/minio_mcp/Downloads:/home/santi/Documentos/LangGraph/Modulo-Marta/mcps/minio_mcp/Downloads:ro
     depends_on:
       - orchestrator
 

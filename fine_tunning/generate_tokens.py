@@ -7,11 +7,11 @@ import torch
 
 
 def input_text_schema( text, schema, example=["","",""]):
-    schema = json.dumps(json.loads(schema), indent=4)
+    schema = json.dumps(json.loads(schema), indent=4) # Limpia y formatea el JSON
     input_llm =  "<|input|>\n### Template:\n" +  schema + "\n"
     for i in example:
       if i != "":
-          input_llm += "### Example:\n"+ json.dumps(json.loads(i), indent=4)+"\n"
+          input_llm += "### Example:\n"+ json.dumps(json.loads(i), indent=4)+"\n" # Few shots examples
     
     input_llm +=  "### Text:\n"+text +"\n<|output|>\n"
     return input_llm
@@ -49,6 +49,9 @@ def  get_general_dict(dict):
 
 
 
+# --------------------------------------------
+# Genera el dataset con schema y ejemplos de entrenamiento
+# --------------------------------------------
 
 def add_schema_and_structure(dict_dataset):
     formatted_data = {}
@@ -56,16 +59,19 @@ def add_schema_and_structure(dict_dataset):
         step_data = []
         for item in dict_dataset[step]:  
             original_text = item["original_text"]
+            # Paso General
             schema_type =get_schema_by_type(item["type"]) 
-            output_text = json.dumps(get_general_dict(item))
+            output_text = json.dumps(get_general_dict(item)) # Metadatos comunes entre todos los tipos
             step_data.append({"input": input_text_schema(original_text,SCHEMA_GENERAL), "output": output_text})
+            
+            # Paso Específico
             final_dict = {k: v for k, v in item.items() if  k != "type" and k != "dc.type" and k != "original_text" and k != "keywords" and k != "dc.uri" and k != "sedici.uri" and k != "abstract" and k != "subject" and k != "isRelatedWith" and k != "isrelatedwith"}
-            output_text = json.dumps(final_dict)
+            output_text = json.dumps(final_dict) # Metadatos específicos del tipo
             step_data.append({"input": input_text_schema(original_text,schema_type), "output": output_text})
         formatted_data[step] = step_data
     dataset_dict = {}
     for step, step_data in formatted_data.items():
-      dataset_dict[step] = Dataset.from_list(step_data)
+      dataset_dict[step] = Dataset.from_list(step_data) # Une los dos pasos en un dataset
     return DatasetDict(dataset_dict)
 
 
@@ -77,11 +83,13 @@ def add_prompt_and_structure(dict_dataset):
         step_data = []
         for item in dict_dataset[step]:
             original_text = item["original_text"]
-            prompt_type =get_prompt_by_type(item["type"]) 
-            output_text = json.dumps(get_general_dict(item))
+            prompt_type =get_prompt_by_type(item["type"]) # Obtiene el prompt según el tipo de documento
+            # Paso General
+            output_text = json.dumps(get_general_dict(item)) # Metadatos comunes entre todos los tipos
             step_data.append({"input": input_text(original_text,PROMPT_GENERAL), "output": output_text})
+            # Paso Específico
             final_dict = {k: v for k, v in item.items() if  k != "type" and k != "dc.type" and k != "original_text" and k != "keywords" and k != "dc.uri" and k != "sedici.uri" and k != "abstract" and k != "subject" and k != "isRelatedWith" and k != "isrelatedwith"}
-            output_text = json.dumps(final_dict)
+            output_text = json.dumps(final_dict) # Metadatos específicos del tipo
             step_data.append({"input": input_text(original_text,prompt_type), "output": output_text})
         formatted_data[step] = step_data
     print(formatted_data["training"][0]["output"])
@@ -106,6 +114,9 @@ def preprocess_function(examples,tokenizer,model_type="causal"):
 
         # 2️⃣ Extendemos la attention_mask
         combined_attention_mask = torch.cat([attention_mask, torch.ones(label_ids.shape, dtype=torch.long)], dim=-1)
+        # Aclaración: A pesar de que la extensión de la máscara pone todos los tokens en 1, 
+        # internamente el modelo NO tiene en cuenta los tokens del output para generar la salida (para no "hacer trampa")
+        # pero sí tiene en cuenta los tokens del output para calcular la pérdida.
 
         # 3️⃣ Creamos los labels con -100 en la parte de input
         labels_padded = combined_input_ids.clone()
