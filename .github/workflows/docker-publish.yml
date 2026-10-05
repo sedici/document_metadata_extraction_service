@@ -1,0 +1,63 @@
+name: Docker Publish to GHCR
+
+on:
+    push:
+        branches: [ github_actions ]
+    workflow_dispatch: # Esto permite ejecutar la gh action manualmente desde la interfaz grafica de github
+
+permissions:
+    contents: read
+    packages: write
+
+jobs:
+    build-and-push:
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false # Indica que el job no se detendra si un paso falla
+            matrix:
+                include:
+                    - name: backend
+                      context: ./api
+                      dockerfile: ./api/Dockerfile
+                      image: ghcr.io/${{ github.repository }}/api
+                    - name: mcp-server
+                      context: ./api/mcp/orchestrator_mcp
+                      dockerfile: ./api/mcp/orchestrator_mcp/Dockerfile
+                      image: ghcr.io/${{ github.repository }}/mcp-server
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4 # Clona el código fuente en el dir de trabajo del servidor
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3 # Instala y configura el builder de docker
+            
+            - name: Log in to Github Container Registry
+              uses: docker/login-action@v3 # Maneja el login y logout del registry
+              with:
+                registry: ghcr.io
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }} 
+            
+            - name: Extract Docker metadata
+              id: meta
+              uses: docker/metadata-action@v5 # Extrae y genera tags y metadatos(labels)
+              with:
+                images: ${{ matrix.image }}
+                tags: |
+                  type=ref,event=branch
+                  type=semver,pattern={{version}}
+                  type=sha,format=short
+                  type=raw,value=latest,enable={{is_default_branch}}
+
+            - name: Build and Push Docker Image
+              uses: docker/build-push-action@v6
+              with:
+                context: ${{ matrix.context }}
+                file: ${{ matrix.dockerfile }}
+                push: true
+                tags: ${{ steps.meta.outputs.tags }}
+                labels: ${{ steps.meta.outputs.labels }}
+                cache-from: type=gha,scope=${{ matrix.name }}
+                cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+                #  scope=${{ matrix.name }} : Hace que la cache sea especifica para cada servicio
+                #  Esto es util para evitar colisiones de cache entre diferentes servicios
