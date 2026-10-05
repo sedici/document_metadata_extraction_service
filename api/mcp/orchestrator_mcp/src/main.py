@@ -9,7 +9,7 @@ Exposes the orchestrator's endpoints as MCP tools:
 
 import os
 import base64
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 import httpx
 from dotenv import load_dotenv
 
@@ -19,7 +19,7 @@ ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_URL", "http://orchestrator:8000")
 ORCHESTRATOR_TOKEN = os.getenv("ORCHESTRATOR_TOKEN", "")
 MCP_PORT = int(os.getenv("PORT_MCP_ORCHESTRATOR", 8004))
 
-mcp = FastMCP("orchestrator-mcp", host="0.0.0.0", port=MCP_PORT)
+mcp = MCPServer("orchestrator-mcp")
 
 
 def _auth_headers() -> dict:

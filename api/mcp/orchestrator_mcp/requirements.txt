@@ -1,5 +1,4 @@
 fastapi
-fastmcp
 mcp
 httpx
 python-dotenv

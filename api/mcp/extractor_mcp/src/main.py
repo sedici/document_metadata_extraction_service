@@ -9,7 +9,7 @@ Exposes the extractor's endpoints as MCP tools:
 """
 
 import os
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 import httpx
 from dotenv import load_dotenv
 
@@ -19,7 +19,7 @@ EXTRACTOR_URL = os.getenv("EXTRACTOR_URL", "http://extractor_service:8001")
 EXTRACTOR_TOKEN = os.getenv("EXTRACTOR_TOKEN", "")
 MCP_PORT = int(os.getenv("PORT_MCP_EXTRACTOR", 8005))
 
-mcp = FastMCP("extractor-mcp", host="0.0.0.0", port=MCP_PORT)
+mcp = MCPServer("extractor-mcp")
 
 
 def _auth_headers() -> dict:
@@ -149,4 +149,4 @@ def extract_text_with_tags(
 
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
+    mcp.run(transport="streamable-http", host="0.0.0.0", port=MCP_PORT)

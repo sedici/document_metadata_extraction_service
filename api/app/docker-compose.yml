@@ -81,7 +81,7 @@ services:
 
   mcp_orchestrator:
     build:
-      context: ./mcp/orchestrator_mcp
+      context: ../mcp/orchestrator_mcp
     container_name: mcp_orchestrator
     ports:
       - "${PORT_MCP_ORCHESTRATOR}:${PORT_MCP_ORCHESTRATOR}"
@@ -97,7 +97,7 @@ services:
 
   mcp_extractor:
     build:
-      context: ./mcp/extractor_mcp
+      context: ../mcp/extractor_mcp
     container_name: mcp_extractor
     ports:
       - "${PORT_MCP_EXTRACTOR}:${PORT_MCP_EXTRACTOR}"
@@ -110,7 +110,7 @@ services:
 
   mcp_llm_led:
     build:
-      context: ./mcp/llm_led_mcp
+      context: ../mcp/llm_led_mcp
     container_name: mcp_llm_led
     ports:
       - "${PORT_MCP_LLM_LED}:${PORT_MCP_LLM_LED}"

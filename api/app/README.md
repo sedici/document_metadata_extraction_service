@@ -1,18 +1,53 @@
-3 differents services:
+# API — Servicios de extracción de metadatos
 
-- extractor_service: receives a document as a request that can be 'pdf, word, doc or ppt' and extracts the metadata necessary for uploading to the sedici repository.
-- llm_service_led: receives a document as a request that can be 'pdf, word, doc or ppt' and extracts the metadata necessary for uploading to the sedici repository.
-- orchestrator: receives a document as a request that can be 'pdf, word, doc or ppt' and extracts the metadata necessary for uploading to the sedici repository.
+## Estructura
 
-## How to run
+```
+api/
+├── app/                  ← Microservicios HTTP (core del sistema)
+│   ├── docker-compose.yml
+│   ├── extractor_service/
+│   ├── llm_service/
+│   ├── orchestrator/
+│   └── models/
+└── mcp/                  ← Adaptadores MCP (interfaz para agentes de IA)
+    ├── orchestrator_mcp/
+    ├── extractor_mcp/
+    └── llm_led_mcp/
+```
 
-### Requirements
+## Servicios (`api/app`)
 
+- **extractor_service**: recibe un documento (PDF, DOCX, ODS) y extrae el texto plano o en formato XML etiquetado.
+- **llm_service**: recibe texto procesado y un prompt, y ejecuta un modelo de lenguaje para extraer metadatos estructurados.
+- **orchestrator**: punto de entrada principal. Coordina el flujo entre `extractor_service` y `llm_service`, detecta el tipo de documento y retorna el JSON de metadatos.
 
-- Docker Compose: just run `docker-compose up` or you can run specific services with `docker-compose up extractor_service` or the name of the service you want to run (e.g. `docker-compose up orchestrator`, `docker-compose up llm_service_led`) for each service you have to configure the environment variables in the `.env` file see example in `.env.example` and also in the `docker-compose.yml` file for llm_sercive  the model and configurations.
+## MCP Servers (`api/mcp`)
 
-- Docker run with nvidia-container-toolkit: just run `docker run --gpus all -it -v /path/to/your/data:/data -p 8000:8000 orchestrator` or you can run specific services with `docker run --gpus all -it -v /path/to/your/data:/data -p 8000:8000 extractor_service` or the name of the service you want to run (e.g. `docker run --gpus all -it -v /path/to/your/data:/data -p 8000:8000 orchestrator`, `docker run --gpus all -it -v /path/to/your/data:/data -p 8000:8000 llm_service_led`) for each service you have to configure the environment variables in the `.env` file see example in `.env.example` and also in the `docker-compose.yml` file for llm_sercive  the model and configurations.
+Wrappers de protocolo MCP que exponen los servicios HTTP anteriores como *tools* consumibles por agentes de IA (Claude, LangGraph, etc.):
 
-- Python 3.10 (with out containers): run `uvicorn app.main:app --reload` this you have to configure the enviroments that are in the `.env` file see example in `.env.example` and also in the `docker-compose.yml` file for llm_sercive  the model and configurations. also you need to install the requirements in the `requirements.txt` file with `pip install -r requirements.txt`
+- **orchestrator_mcp**: expone el endpoint de upload del orquestador.
+- **extractor_mcp**: expone el endpoint de extracción de texto.
+- **llm_led_mcp**: expone el endpoint del modelo de lenguaje.
 
-1.
+## Cómo ejecutar
+
+### Con Docker Compose (recomendado)
+
+```bash
+# Desde api/app/
+docker-compose up
+# Solo servicios core (sin MCP):
+docker-compose up orchestrator extractor_service llm_service_led
+# Solo un servicio:
+docker-compose up extractor_service
+```
+
+Configurar variables de entorno en `.env` (ver `.env.example`).
+
+### Sin contenedores (Python 3.10+)
+
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
