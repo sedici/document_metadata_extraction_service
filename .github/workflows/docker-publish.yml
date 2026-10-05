@@ -17,8 +17,8 @@ jobs:
             matrix:
                 include:
                     - name: backend
-                      context: ./api
-                      dockerfile: ./api/Dockerfile
+                      context: ./api/app/orchestrator
+                      dockerfile: ./api/app/orchestrator/Dockerfile
                       image: ghcr.io/${{ github.repository }}/api
                     - name: mcp-server
                       context: ./api/mcp/orchestrator_mcp
