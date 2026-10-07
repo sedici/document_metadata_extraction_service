@@ -34,6 +34,7 @@ pyvenv.cfg
 /api/app/fine-tuned-model2
 /fine_tunning/log
 /data
+/documents
 /validation/result/add_types.py
 /fine_tune_subject/model_results
 /fine_tune_subject/models

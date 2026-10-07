@@ -90,8 +90,7 @@ services:
       - ORCHESTRATOR_URL=http://orchestrator:${PORT_ORCHESTRATOR_API}
       - ORCHESTRATOR_TOKEN=${ORCHESTRATOR_TOKEN}
     volumes:
-      - /home/santi/Documentos/LangGraph/Multi-Services Project/MCPs/MinIO MCP/Downloads:/home/santi/Documentos/LangGraph/Multi-Services Project/MCPs/MinIO MCP/Downloads:ro
-      - /home/santi/Documentos/LangGraph/Modulo-Marta/mcps/minio_mcp/Downloads:/home/santi/Documentos/LangGraph/Modulo-Marta/mcps/minio_mcp/Downloads:ro
+      - ${MCP_DOCUMENTS_DIR:-./documents}:${MCP_DOCUMENTS_CONTAINER_DIR:-/documents}:ro
     depends_on:
       - orchestrator
 
