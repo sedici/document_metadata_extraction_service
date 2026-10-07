@@ -8,7 +8,7 @@ Exposes the llm_service_led endpoints as MCP tools:
 """
 
 import os
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 import httpx
 from dotenv import load_dotenv
 
@@ -18,7 +18,7 @@ LLM_LED_URL = os.getenv("LLM_LED_URL", "http://llm_service_led:8002")
 LLM_LED_TOKEN = os.getenv("LLM_LED_TOKEN", "")
 MCP_PORT = int(os.getenv("PORT_MCP_LLM_LED", 8006))
 
-mcp = FastMCP("llm-led-mcp", host="0.0.0.0", port=MCP_PORT)
+mcp = MCPServer("llm-led-mcp")
 
 
 def _auth_headers() -> dict:
@@ -89,4 +89,4 @@ def consume_llm(text: str) -> dict:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
+    mcp.run(transport="streamable-http", host="0.0.0.0", port=MCP_PORT)

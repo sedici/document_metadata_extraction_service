@@ -1,8 +1,5 @@
 fastapi[standard]
 transformers
 uvicorn
-torch
-torchvision
-torchaudio
 ollama
 python-dotenv
