@@ -20,10 +20,26 @@ jobs:
                       context: ./api/app/orchestrator
                       dockerfile: ./api/app/orchestrator/Dockerfile
                       image: ghcr.io/${{ github.repository }}/api
+                    - name: extractor-service
+                      context: ./api/app/extractor_service
+                      dockerfile: ./api/app/extractor_service/Dockerfile
+                      image: ghcr.io/${{ github.repository }}/extractor-service
+                    - name: llm-service
+                      context: ./api/app/llm_service
+                      dockerfile: ./api/app/llm_service/Dockerfile
+                      image: ghcr.io/${{ github.repository }}/llm-service
                     - name: mcp-server
                       context: ./api/mcp/orchestrator_mcp
                       dockerfile: ./api/mcp/orchestrator_mcp/Dockerfile
                       image: ghcr.io/${{ github.repository }}/mcp-server
+                    - name: mcp-extractor
+                      context: ./api/mcp/extractor_mcp
+                      dockerfile: ./api/mcp/extractor_mcp/Dockerfile
+                      image: ghcr.io/${{ github.repository }}/mcp-extractor
+                    - name: mcp-llm-led
+                      context: ./api/mcp/llm_led_mcp
+                      dockerfile: ./api/mcp/llm_led_mcp/Dockerfile
+                      image: ghcr.io/${{ github.repository }}/mcp-llm-led
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4 # Clona el código fuente en el dir de trabajo del servidor
